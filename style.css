@@ -1,0 +1,327 @@
+:root {
+    --primary-color: #ffb6c1;
+    /* Light Pink */
+    --primary-dark: #ff69b4;
+    /* Hot Pink */
+    --secondary-color: #ffd700;
+    /* Gold */
+    --text-color: #333;
+    --background-color: #fff0f5;
+    /* Lavender Blush */
+    --white: #ffffff;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --radius: 16px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+#app {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: var(--radius);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Animations */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.screen {
+    display: none;
+    flex-direction: column;
+    gap: 1.5rem;
+    animation: slideUp 0.4s ease-out;
+}
+
+.screen.active {
+    display: flex;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Typography */
+h1 {
+    color: var(--primary-dark);
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+}
+
+h2 {
+    color: var(--primary-dark);
+    margin-bottom: 1rem;
+}
+
+h3 {
+    color: #555;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    color: #888;
+    margin-bottom: 2rem;
+}
+
+/* Forms */
+input,
+select {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 10px;
+    border: 2px solid #eee;
+    border-radius: 12px;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s;
+}
+
+input:focus,
+select:focus {
+    border-color: var(--primary-dark);
+    background: #fffafa;
+}
+
+/* Buttons */
+.btn {
+    padding: 14px 24px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.1s, filter 0.2s;
+    width: 100%;
+}
+
+.btn:hover {
+    filter: brightness(1.05);
+}
+
+.btn:active {
+    transform: scale(0.96);
+}
+
+.btn.primary {
+    background-color: var(--primary-dark);
+    color: white;
+    box-shadow: 0 4px 10px rgba(255, 105, 180, 0.3);
+}
+
+.btn.secondary {
+    background-color: var(--secondary-color);
+    color: #5c4d00;
+}
+
+.btn.google {
+    background: white;
+    border: 2px solid #eee;
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn.text-only {
+    background: none;
+    color: #888;
+    text-decoration: underline;
+    font-size: 0.9rem;
+    padding: 10px;
+}
+
+.btn.small {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+    width: auto;
+}
+
+.btn.large {
+    font-size: 1.2rem;
+    padding: 20px;
+}
+
+/* Layouts */
+.auth-buttons,
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.back-btn {
+    margin-top: auto;
+}
+
+/* Dashboard Header */
+#dashboard-screen header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.user-info {
+    text-align: left;
+}
+
+#user-display-name {
+    display: block;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--primary-dark);
+}
+
+#user-role-badge {
+    font-size: 0.8rem;
+    background: #eee;
+    padding: 4px 8px;
+    border-radius: 6px;
+    color: #666;
+}
+
+/* Role Selection Cards */
+.role-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.role-card {
+    background: white;
+    border: 2px solid #eee;
+    border-radius: 16px;
+    padding: 20px 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.role-card:hover {
+    border-color: var(--primary-dark);
+    background: #fff0f5;
+    transform: translateY(-5px);
+}
+
+.role-card .icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+/* Kid Dashboard */
+.kid-balance-display {
+    padding: 20px;
+}
+
+.balance-circle {
+    width: 200px;
+    height: 200px;
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+    border-radius: 50%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    box-shadow: 0 10px 30px rgba(255, 105, 180, 0.4);
+    border: 5px solid white;
+}
+
+#kid-balance-amount {
+    font-size: 4rem;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.currency-label {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+/* Parent List */
+.list-container {
+    margin-top: 15px;
+    text-align: left;
+}
+
+.kid-item {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.kid-name {
+    font-weight: bold;
+    color: #555;
+}
+
+.kid-balance {
+    color: var(--primary-dark);
+    font-weight: bold;
+}
+
+/* Modals */
+#modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modal {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 350px;
+    animation: slideUp 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
