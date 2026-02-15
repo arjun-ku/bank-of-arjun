@@ -252,7 +252,7 @@ const app = {
 
         showTransactionModal(type) {
             this.currentTransactionType = type;
-            const title = type === 'add' ? 'Put Money in Kid' : 'Deposit (Remove) Money';
+            const title = type === 'add' ? 'Deposit Money' : 'Withdraw Money';
             document.getElementById('transaction-title').innerText = title;
 
             // Populate kids dropdown
@@ -290,7 +290,7 @@ const app = {
                 kid.balance += amount;
             } else {
                 if (kid.balance < amount) {
-                    alert("Not enough Piggys in kid's account!");
+                    alert("Insufficient funds in account!");
                     return;
                 }
                 kid.balance -= amount;
@@ -319,7 +319,7 @@ const app = {
         updateUserInfo(user) {
             document.getElementById('user-display-name').innerText = user.username;
             document.getElementById('user-role-badge').innerText = user.role ?
-                (user.role === 'parent' ? 'Bank Owner 🏦' : 'Saver 🐷') : 'New User';
+                (user.role === 'parent' ? 'Bank Manager 🏦' : 'Customer 💳') : 'New User';
         },
 
         renderTemplate(templateName) {
@@ -364,8 +364,8 @@ const app = {
                 const item = document.createElement('div');
                 item.className = 'kid-item';
                 item.innerHTML = `
-                    <span class="kid-name">🐷 ${kid.username}</span>
-                    <span class="kid-balance">${kid.balance} Piggys</span>
+                    <span class="kid-name">👤 ${kid.username}</span>
+                    <span class="kid-balance">$${kid.balance}</span>
                 `;
                 listContainer.appendChild(item);
             });

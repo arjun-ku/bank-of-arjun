@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bank of Piggo</title>
+    <title>Bank of Arjun</title>
     <link rel="stylesheet" href="style.css">
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -15,8 +15,8 @@
     <div id="app">
         <!-- Welcome Screen -->
         <section id="welcome-screen" class="screen active">
-            <h1>Welcome to the Bank of Piggo 🐷</h1>
-            <p class="subtitle">Keep track of your money with style!</p>
+            <h1>Welcome to Bank of Arjun 🏦</h1>
+            <p class="subtitle">Secure. Simple. Smart Banking.</p>
             <div class="auth-buttons">
                 <button id="btn-create-profile" class="btn primary">Create a Profile</button>
                 <button id="btn-existing-account" class="btn secondary">Use Existing Account</button>
@@ -75,9 +75,9 @@
                     <p>I am a Parent</p>
                 </div>
                 <div class="card role-card" onclick="app.handlers.selectRole('kid')">
-                    <div class="icon">🐷</div>
+                    <div class="icon">💳</div>
                     <h3>Use Parent's Bank</h3>
-                    <p>I am a Kid</p>
+                    <p>I am a Customer</p>
                 </div>
             </div>
         </template>
@@ -86,10 +86,10 @@
             <h2>Parent Dashboard</h2>
             <div class="action-buttons">
                 <button class="btn primary large" onclick="app.handlers.showTransactionModal('add')">
-                    Put Money in Kid 💰
+                    Deposit Money 💰
                 </button>
                 <button class="btn secondary large" onclick="app.handlers.showTransactionModal('remove')">
-                    Deposit Money in Kid 🏦
+                    Withdraw Money 💸
                 </button>
             </div>
 
@@ -106,7 +106,7 @@
                 <h2>My Balance</h2>
                 <div class="balance-circle">
                     <span id="kid-balance-amount">0</span>
-                    <span class="currency-label">Piggys 🐷</span>
+                    <span class="currency-label">$ Dollars</span>
                 </div>
             </div>
         </template>

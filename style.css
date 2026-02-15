@@ -1,23 +1,23 @@
 :root {
-    --primary-color: #ffb6c1;
-    /* Light Pink */
-    --primary-dark: #ff69b4;
-    /* Hot Pink */
-    --secondary-color: #ffd700;
-    /* Gold */
+    --primary-color: #4a90e2;
+    /* Soft Blue */
+    --primary-dark: #0056b3;
+    /* Dark Blue */
+    --secondary-color: #28a745;
+    /* Success Green */
     --text-color: #333;
-    --background-color: #fff0f5;
-    /* Lavender Blush */
+    --background-color: #f4f7f6;
+    /* Light Grayish Blue */
     --white: #ffffff;
     --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --radius: 16px;
+    --radius: 12px;
 }
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 body {
@@ -134,12 +134,13 @@ select:focus {
 .btn.primary {
     background-color: var(--primary-dark);
     color: white;
-    box-shadow: 0 4px 10px rgba(255, 105, 180, 0.3);
+    box-shadow: 0 4px 10px rgba(0, 86, 179, 0.3);
 }
 
 .btn.secondary {
-    background-color: var(--secondary-color);
-    color: #5c4d00;
+    background-color: var(--white);
+    color: #333;
+    border: 1px solid #ddd;
 }
 
 .btn.google {
@@ -230,7 +231,7 @@ select:focus {
 
 .role-card:hover {
     border-color: var(--primary-dark);
-    background: #fff0f5;
+    background: #f0f8ff;
     transform: translateY(-5px);
 }
 
@@ -247,7 +248,7 @@ select:focus {
 .balance-circle {
     width: 200px;
     height: 200px;
-    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+    background: linear-gradient(135deg, #4a90e2 0%, #0056b3 100%);
     border-radius: 50%;
     margin: 0 auto;
     display: flex;
@@ -255,7 +256,7 @@ select:focus {
     justify-content: center;
     align-items: center;
     color: #fff;
-    box-shadow: 0 10px 30px rgba(255, 105, 180, 0.4);
+    box-shadow: 0 10px 30px rgba(0, 86, 179, 0.4);
     border: 5px solid white;
 }
 
