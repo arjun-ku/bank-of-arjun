@@ -17,25 +17,44 @@ if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 const db = firebase.firestore();
+const auth = firebase.auth();
 
 const app = {
     state: {
         users: [],
-        currentUser: JSON.parse(localStorage.getItem('bankOfPiggo_currentUser')) || null, // Keep session local
+        currentUser: null,
     },
 
     init() {
         this.cacheDOM();
         this.bindEvents();
+        this.initAuthListener();
         this.initRealtimeListener();
+    },
 
-        // Restore session if exists
-        if (this.state.currentUser) {
-            // Re-fetch fresh data for current user from the list once loaded
-            // (Handled by listener)
-        } else {
-            this.ui.showScreen('welcome');
-        }
+    initAuthListener() {
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                console.log("User logged in:", user.email);
+                // User is signed in, fetch their extra data from Firestore
+                const userDoc = await db.collection('users').doc(user.email).get();
+
+                if (userDoc.exists) {
+                    app.state.currentUser = { ...userDoc.data(), email: user.email };
+                    app.ui.showScreen('dashboard');
+                    app.ui.renderDashboard(app.state.currentUser);
+                } else {
+                    // Start fresh flow if doc missing (shouldn't happen usually)
+                    app.state.currentUser = { email: user.email, role: null, balance: 0 };
+                    app.ui.renderTemplate('roleSelection');
+                    app.ui.showScreen('dashboard');
+                }
+            } else {
+                console.log("User logged out");
+                app.state.currentUser = null;
+                app.ui.showScreen('welcome');
+            }
+        });
     },
 
     cacheDOM() {
@@ -93,124 +112,104 @@ const app = {
             app.state.users = users;
 
             // If logged in, update UI with fresh data
-            if (app.state.currentUser) {
-                const freshUser = app.state.users.find(u => u.username === app.state.currentUser.username);
-                if (freshUser) {
-                    app.state.currentUser = freshUser; // Update reference
-                    app.ui.renderDashboard(freshUser); // Re-render
+            if (auth.currentUser && app.state.currentUser) {
+                // Find self in the updated list
+                const freshData = app.state.users.find(u => u.email === auth.currentUser.email);
+                if (freshData) {
+                    app.state.currentUser = freshData;
+                    // Only re-render if visible
+                    if (!document.getElementById('dashboard-screen').classList.contains('hidden')) {
+                        app.ui.renderDashboard(freshData);
+                    }
                 }
             }
         });
     },
 
     data: {
-        async createUser(user) {
-            // Use username as doc ID to ensure uniqueness easily
-            await db.collection('users').doc(user.username).set(user);
+        async createUserDoc(user) {
+            // Use EMAIL as doc ID
+            await db.collection('users').doc(user.email).set(user);
         },
         async updateUser(user) {
-            await db.collection('users').doc(user.username).update(user);
+            await db.collection('users').doc(user.email).update(user);
         },
-        findUser(username) {
-            return app.state.users.find(u => u.username === username);
+        findUser(email) {
+            return app.state.users.find(u => u.email === email);
         },
-        getKidsForParent(parentUsername) {
-            return app.state.users.filter(u => u.role === 'kid' && u.linkedParent === parentUsername);
+        getKidsForParent(parentEmail) {
+            return app.state.users.filter(u => u.role === 'kid' && u.linkedParent === parentEmail);
         }
     },
 
     handlers: {
         async handleSignup(e) {
             e.preventDefault();
-            const username = document.getElementById('signup-username').value.trim();
+            const email = document.getElementById('signup-email').value.trim();
             const password = document.getElementById('signup-password').value.trim();
 
-            if (app.data.findUser(username)) {
-                alert('Username already exists!');
-                return;
-            }
-
-            const newUser = {
-                username,
-                password,
-                role: null,
-                balance: 0,
-                linkedParent: null
-            };
-
             try {
-                await app.data.createUser(newUser);
-                this.login(newUser);
+                // 1. Create Auth User
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+
+                // 2. Create Firestore Doc
+                const newUserDoc = {
+                    email: user.email,
+                    username: user.email.split('@')[0], // Default username from email
+                    role: null,
+                    balance: 0,
+                    linkedParent: null
+                };
+
+                await app.data.createUserDoc(newUserDoc);
+                // Auth listener will auto-redirect to dashboard
             } catch (err) {
-                console.error("Error creating user:", err);
-                alert("Failed to create user. Check internet connection.");
+                console.error("Signup Error:", err);
+                alert(err.message);
             }
         },
 
         async handleGoogleSignup() {
-            const randomSuffix = Math.floor(Math.random() * 1000);
-            const username = `GoogleUser${randomSuffix}`;
-            const password = Math.random().toString(36).slice(-8);
-
-            // Show generated password notification
-            const notif = document.createElement('div');
-            notif.style.cssText = `
-                position: fixed; top: 10px; left: 10px; 
-                background: white; padding: 10px; border: 2px solid #333; 
-                border-radius: 8px; z-index: 2000; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            `;
-            notif.innerHTML = `<strong>Created!</strong><br>User: ${username}<br>Pass: ${password}`;
-            document.body.appendChild(notif);
-            setTimeout(() => notif.remove(), 8000);
-
-            const newUser = {
-                username,
-                password,
-                isGoogle: true,
-                role: null,
-                balance: 0,
-                linkedParent: null
-            };
-
+            const provider = new firebase.auth.GoogleAuthProvider();
             try {
-                await app.data.createUser(newUser);
-                this.login(newUser);
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
+
+                // Check if doc exists, if not create it
+                const doc = await db.collection('users').doc(user.email).get();
+                if (!doc.exists) {
+                    const newUserDoc = {
+                        email: user.email,
+                        username: user.displayName || user.email.split('@')[0],
+                        role: null,
+                        balance: 0,
+                        linkedParent: null
+                    };
+                    await app.data.createUserDoc(newUserDoc);
+                }
+                // Auth listener handles the rest
             } catch (err) {
-                console.error("Error creating user:", err);
-                alert("Failed to create user.");
+                console.error("Google Sign In Error:", err);
+                alert(err.message);
             }
         },
 
-        handleLogin(e) {
+        async handleLogin(e) {
             e.preventDefault();
-            const username = document.getElementById('login-username').value.trim();
+            const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value.trim();
 
-            const user = app.state.users.find(u => u.username === username && u.password === password);
-
-            if (user) {
-                this.login(user);
-            } else {
-                alert('Invalid credentials!');
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+            } catch (err) {
+                console.error("Login Error:", err);
+                alert("Login failed: " + err.message);
             }
         },
 
         handleLogout() {
-            app.state.currentUser = null;
-            localStorage.removeItem('bankOfPiggo_currentUser');
-            app.ui.showScreen('welcome');
-        },
-
-        login(user) {
-            app.state.currentUser = user;
-            localStorage.setItem('bankOfPiggo_currentUser', JSON.stringify(user));
-
-            if (!user.role) {
-                app.ui.renderTemplate('roleSelection');
-                app.ui.showScreen('dashboard');
-            } else {
-                app.ui.renderDashboard(user);
-            }
+            auth.signOut();
         },
 
         async selectRole(role) {
@@ -225,25 +224,21 @@ const app = {
 
         async handleLinkParent(e) {
             e.preventDefault();
-            const parentUsername = document.getElementById('parent-link-username').value.trim();
-            const parentPassword = document.getElementById('parent-link-password').value.trim();
+            const parentEmail = document.getElementById('parent-link-email').value.trim();
+            // No password check for linking now (simpler), or we can just check if parent exists
+            // In real app, parent might share a code, but relying on email is okay for family app
 
-            // Verify parent credentials
-            const parentUser = app.state.users.find(u =>
-                u.username === parentUsername &&
-                u.password === parentPassword &&
-                u.role === 'parent' // Must be a registered parent
-            );
+            const parentUser = app.state.users.find(u => u.email === parentEmail && u.role === 'parent');
 
             if (parentUser) {
                 app.state.currentUser.role = 'kid';
-                app.state.currentUser.linkedParent = parentUser.username;
+                app.state.currentUser.linkedParent = parentUser.email;
                 await app.data.updateUser(app.state.currentUser);
 
                 app.ui.closeModals();
-                alert(`Successfully linked to ${parentUser.username}'s Bank!`);
+                alert(`Successfully linked to ${parentUser.username || parentUser.email}'s Bank!`);
             } else {
-                alert('Invalid parent credentials or parent account not found/created yet.');
+                alert('Parent account not found! Make sure they signed up with that email and selected "Bank Manager".');
             }
         },
 
@@ -259,7 +254,7 @@ const app = {
             const select = document.getElementById('transaction-kid-select');
             select.innerHTML = '<option value="" disabled selected>Select Kid</option>';
 
-            const kids = app.data.getKidsForParent(app.state.currentUser.username);
+            const kids = app.data.getKidsForParent(app.state.currentUser.email);
 
             if (kids.length === 0) {
                 alert("No kids linked yet! Ask your kid to create a profile and link to you.");
@@ -268,8 +263,8 @@ const app = {
 
             kids.forEach(kid => {
                 const opt = document.createElement('option');
-                opt.value = kid.username;
-                opt.innerText = `${kid.username} (Bal: ${kid.balance})`;
+                opt.value = kid.email;
+                opt.innerText = `${kid.username} (Bal: $${kid.balance})`;
                 select.appendChild(opt);
             });
 
@@ -278,12 +273,12 @@ const app = {
 
         async handleTransaction(e) {
             e.preventDefault();
-            const kidUsername = document.getElementById('transaction-kid-select').value;
+            const kidEmail = document.getElementById('transaction-kid-select').value;
             const amount = parseInt(document.getElementById('transaction-amount').value);
 
-            if (!kidUsername || !amount) return;
+            if (!kidEmail || !amount) return;
 
-            const kid = app.data.findUser(kidUsername);
+            const kid = app.data.findUser(kidEmail);
             if (!kid) return;
 
             if (this.currentTransactionType === 'add') {
@@ -352,7 +347,7 @@ const app = {
             const listContainer = document.getElementById('parent-kids-list');
             if (!listContainer) return;
 
-            const kids = app.data.getKidsForParent(app.state.currentUser.username);
+            const kids = app.data.getKidsForParent(app.state.currentUser.email);
             listContainer.innerHTML = '';
 
             if (kids.length === 0) {
