@@ -278,13 +278,14 @@ select:focus {
 }
 
 .kid-item {
-    background: #f9f9f9;
+    background: white;
     padding: 15px;
     border-radius: 12px;
     margin-bottom: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border: 1px solid #eee;
 }
 
 .kid-name {

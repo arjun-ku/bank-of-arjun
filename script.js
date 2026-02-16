@@ -36,7 +36,6 @@ const app = {
     initAuthListener() {
         auth.onAuthStateChanged(async (user) => {
             if (user) {
-                console.log("User logged in:", user.email);
                 // User is signed in, fetch their extra data from Firestore
                 const userDoc = await db.collection('users').doc(user.email).get();
 
@@ -53,7 +52,6 @@ const app = {
                     app.ui.showScreen('dashboard');
                 }
             } else {
-                console.log("User logged out");
                 app.state.currentUser = null;
                 app.state.sessionRoleSelected = false;
                 app.ui.showScreen('welcome');
@@ -423,7 +421,7 @@ const app = {
 
             app.ui.updateUserInfo(user);
 
-            console.log("Rendering Dashboard for Role:", user.role);
+            app.ui.updateUserInfo(user);
 
             // If no role set OR session role not selected yet, show selection screen
             if (!user.role || user.role === 'null' || !app.state.sessionRoleSelected) {
@@ -464,7 +462,6 @@ const app = {
             kids.forEach(kid => {
                 const item = document.createElement('div');
                 item.className = 'kid-item';
-                item.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-radius: 12px; margin-bottom: 10px; border: 1px solid #eee;";
                 item.innerHTML = `
                     <div>
                         <div class="kid-name" style="font-weight: bold; color: #333;">👤 ${kid.username}</div>
