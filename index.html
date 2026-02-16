@@ -47,9 +47,12 @@
             <form id="login-form">
                 <input type="email" id="login-email" placeholder="Email Address" required>
                 <input type="password" id="login-password" placeholder="Password" required>
-                <button type="submit" class="btn primary">Log In</button>
+                <button type="submit" class="btn primary">Login</button>
+                <p style="margin-top: 10px; font-size: 0.9rem;">
+                    <span class="link-text" onclick="app.handlers.handleForgotPassword()">Forgot Password?</span>
+                </p>
             </form>
-            <button class="btn text-only back-btn">Back</button>
+            <p>New here? <span class="link-text" onclick="app.ui.showScreen('signup-screen')">Create Account</span></p>
         </section>
 
         <!-- Dashboard Screen -->

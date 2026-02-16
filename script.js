@@ -208,19 +208,6 @@ const app = {
             }
         },
 
-        async handleLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value.trim();
-            const password = document.getElementById('login-password').value.trim();
-
-            try {
-                await auth.signInWithEmailAndPassword(email, password);
-            } catch (err) {
-                console.error("Login Error:", err);
-                alert("Login failed: " + err.message);
-            }
-        },
-
         handleLogout() {
             auth.signOut();
         },
