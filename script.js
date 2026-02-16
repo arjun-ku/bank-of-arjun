@@ -384,6 +384,11 @@ const app = {
 
             app.ui.updateUserInfo(user);
 
+            if (!user.role) {
+                this.renderTemplate('roleSelection');
+                return;
+            }
+
             if (user.role === 'parent') {
                 // Only re-render if needed or clean slate, but for now simple innerHTML replacement or check
                 // Simplified: Re-render template to ensure fresh state
