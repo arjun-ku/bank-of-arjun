@@ -85,33 +85,46 @@ const app = {
 
     bindEvents() {
         // Navigation Buttons
-        document.getElementById('btn-create-profile').onclick = () => this.ui.showScreen('signup');
-        document.getElementById('btn-existing-account').onclick = () => this.ui.showScreen('login');
+        const btnCreate = document.getElementById('btn-create-profile');
+        if (btnCreate) btnCreate.onclick = () => this.ui.showScreen('signup');
+
+        const btnExisting = document.getElementById('btn-existing-account');
+        if (btnExisting) btnExisting.onclick = () => this.ui.showScreen('login');
+
         document.querySelectorAll('.back-btn').forEach(btn => btn.onclick = () => this.ui.showScreen('welcome'));
 
         // Auth Forms
-        this.dom.forms.signup.onsubmit = (e) => this.handlers.handleSignup(e);
+        if (this.dom.forms.signup) this.dom.forms.signup.onsubmit = (e) => this.handlers.handleSignup(e);
 
         // Prevent default submit on login form (handled by button click)
-        this.dom.forms.login.onsubmit = (e) => e.preventDefault();
+        if (this.dom.forms.login) this.dom.forms.login.onsubmit = (e) => e.preventDefault();
 
         // Bind button click
-        document.getElementById('btn-login-submit').onclick = (e) => this.handlers.handleLogin(e);
+        const btnLoginSubmit = document.getElementById('btn-login-submit');
+        if (btnLoginSubmit) btnLoginSubmit.onclick = (e) => this.handlers.handleLogin(e);
 
         // Allow Enter key in password field
-        document.getElementById('login-password').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.handlers.handleLogin(e);
-        });
+        const loginPass = document.getElementById('login-password');
+        if (loginPass) {
+            loginPass.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.handlers.handleLogin(e);
+            });
+        }
 
-        document.getElementById('btn-google-signup').onclick = () => this.handlers.handleGoogleSignup();
-        document.getElementById('btn-google-login').onclick = () => this.handlers.handleGoogleSignup(); // Reuses same handler
-        document.getElementById('btn-logout').onclick = () => this.handlers.handleLogout();
+        const btnGoogleSignup = document.getElementById('btn-google-signup');
+        if (btnGoogleSignup) btnGoogleSignup.onclick = () => this.handlers.handleGoogleSignup();
+
+        const btnGoogleLogin = document.getElementById('btn-google-login');
+        if (btnGoogleLogin) btnGoogleLogin.onclick = () => this.handlers.handleGoogleSignup();
+
+        const btnLogout = document.getElementById('btn-logout');
+        if (btnLogout) btnLogout.onclick = () => this.handlers.handleLogout();
 
         // Modal Forms
-        this.dom.forms.linkParent.onsubmit = (e) => this.handlers.handleLinkParent(e);
-        this.dom.forms.transaction.onsubmit = (e) => this.handlers.handleTransaction(e);
-        this.dom.forms.setPin.onsubmit = (e) => this.handlers.handleSetPin(e);
-        this.dom.forms.allowance.onsubmit = (e) => this.handlers.handleSetAllowance(e);
+        if (this.dom.forms.linkParent) this.dom.forms.linkParent.onsubmit = (e) => this.handlers.handleLinkParent(e);
+        if (this.dom.forms.transaction) this.dom.forms.transaction.onsubmit = (e) => this.handlers.handleTransaction(e);
+        if (this.dom.forms.setPin) this.dom.forms.setPin.onsubmit = (e) => this.handlers.handleSetPin(e);
+        if (this.dom.forms.allowance) this.dom.forms.allowance.onsubmit = (e) => this.handlers.handleSetAllowance(e);
     },
 
     initRealtimeListener() {
