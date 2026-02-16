@@ -142,8 +142,17 @@
                 <h3>Link to Parent's Bank</h3>
                 <p>Enter your parent's Email and their Bank PIN.</p>
                 <form id="link-parent-form">
-                    <input type="email" id="parent-link-email" placeholder="Parent Email Address" required>
-                    <input type="text" id="parent-link-pin" placeholder="Parent's 4-Digit PIN" maxlength="4" required>
+                    <label for="parent-link-email"
+                        style="display:block; text-align:left; font-size:0.9rem; color:#555; margin-bottom:5px;">Parent's
+                        Email:</label>
+                    <input type="email" id="parent-link-email" placeholder="e.g. dad@gmail.com" required>
+
+                    <label for="parent-link-pin"
+                        style="display:block; text-align:left; font-size:0.9rem; color:#555; margin-bottom:5px;">Parent's
+                        Bank PIN:</label>
+                    <input type="tel" id="parent-link-pin" placeholder="4-Digit PIN (Ask your parent)" maxlength="4"
+                        pattern="\d{4}" required>
+
                     <div class="modal-buttons">
                         <button type="button" class="btn text-only" onclick="app.ui.closeModals()">Cancel</button>
                         <button type="submit" class="btn primary">Link Account</button>
