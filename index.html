@@ -87,6 +87,13 @@
 
         <template id="parent-dashboard-template">
             <h2>Parent Dashboard</h2>
+            <div class="dashboard-info-card"
+                style="background: #e3f2fd; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #bbdefb;">
+                <p><strong>Your Bank PIN:</strong> <span id="parent-display-pin"
+                        style="font-size: 1.2rem; font-weight: bold; color: #0056b3;">----</span></p>
+                <p style="font-size: 0.9rem; color: #666;">Tell your kids to enter this PIN to link to you!</p>
+            </div>
+
             <div class="action-buttons">
                 <button class="btn primary large" onclick="app.handlers.showTransactionModal('add')">
                     Deposit Money 💰
@@ -116,13 +123,26 @@
 
         <!-- Modals -->
         <div id="modal-overlay" class="hidden">
+            <!-- Set PIN Modal -->
+            <div id="set-pin-modal" class="modal hidden">
+                <h3>Create Bank PIN 🔒</h3>
+                <p>Create a 4-digit PIN. Share this with your kids so they can link to you.</p>
+                <form id="set-pin-form">
+                    <input type="text" id="set-pin-input" placeholder="e.g. 1234" maxlength="4" pattern="\d{4}"
+                        required>
+                    <div class="modal-buttons">
+                        <button type="submit" class="btn primary">Save PIN</button>
+                    </div>
+                </form>
+            </div>
+
             <!-- Link Parent Modal -->
             <div id="link-parent-modal" class="modal hidden">
                 <h3>Link to Parent's Bank</h3>
-                <p>Enter your parent's email to join their bank.</p>
+                <p>Enter your parent's Email and their Bank PIN.</p>
                 <form id="link-parent-form">
                     <input type="email" id="parent-link-email" placeholder="Parent Email Address" required>
-                    <input type="password" id="parent-link-password" placeholder="Parent Password" required>
+                    <input type="text" id="parent-link-pin" placeholder="Parent's 4-Digit PIN" maxlength="4" required>
                     <div class="modal-buttons">
                         <button type="button" class="btn text-only" onclick="app.ui.closeModals()">Cancel</button>
                         <button type="submit" class="btn primary">Link Account</button>
@@ -141,6 +161,20 @@
                     <div class="modal-buttons">
                         <button type="button" class="btn text-only" onclick="app.ui.closeModals()">Cancel</button>
                         <button type="submit" class="btn primary">Confirm</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Set Allowance Modal -->
+            <div id="allowance-modal" class="modal hidden">
+                <h3>Set Weekly Allowance</h3>
+                <form id="allowance-form">
+                    <input type="hidden" id="allowance-kid-email">
+                    <p id="allowance-kid-name" style="margin-bottom: 10px; font-weight: bold;"></p>
+                    <input type="number" id="allowance-amount" placeholder="Weekly Amount ($)" min="0" required>
+                    <div class="modal-buttons">
+                        <button type="button" class="btn text-only" onclick="app.ui.closeModals()">Cancel</button>
+                        <button type="submit" class="btn primary">Save</button>
                     </div>
                 </form>
             </div>

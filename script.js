@@ -69,12 +69,16 @@ const app = {
                 signup: document.getElementById('signup-form'),
                 login: document.getElementById('login-form'),
                 linkParent: document.getElementById('link-parent-form'),
-                transaction: document.getElementById('transaction-form')
+                transaction: document.getElementById('transaction-form'),
+                setPin: document.getElementById('set-pin-form'),
+                allowance: document.getElementById('allowance-form')
             },
             modals: {
                 overlay: document.getElementById('modal-overlay'),
                 linkParent: document.getElementById('link-parent-modal'),
-                transaction: document.getElementById('transaction-modal')
+                transaction: document.getElementById('transaction-modal'),
+                setPin: document.getElementById('set-pin-modal'),
+                allowance: document.getElementById('allowance-modal')
             },
             dashboardContent: document.getElementById('dashboard-content'),
             templates: {
@@ -100,6 +104,8 @@ const app = {
         // Modal Forms
         this.dom.forms.linkParent.onsubmit = (e) => this.handlers.handleLinkParent(e);
         this.dom.forms.transaction.onsubmit = (e) => this.handlers.handleTransaction(e);
+        this.dom.forms.setPin.onsubmit = (e) => this.handlers.handleSetPin(e);
+        this.dom.forms.allowance.onsubmit = (e) => this.handlers.handleSetAllowance(e);
     },
 
     initRealtimeListener() {
@@ -138,7 +144,14 @@ const app = {
             return app.state.users.find(u => u.email === email);
         },
         getKidsForParent(parentEmail) {
-            return app.state.users.filter(u => u.role === 'kid' && u.linkedParent === parentEmail);
+            return app.state.users.filter(u => {
+                if (u.role !== 'kid') return false;
+                // Support both legacy single parent and new array
+                if (u.linkedParents && Array.isArray(u.linkedParents)) {
+                    return u.linkedParents.includes(parentEmail);
+                }
+                return u.linkedParent === parentEmail;
+            });
         }
     },
 
@@ -214,31 +227,85 @@ const app = {
 
         async selectRole(role) {
             if (role === 'parent') {
-                app.state.currentUser.role = 'parent';
-                await app.data.updateUser(app.state.currentUser);
+                // Check if PIN exists
+                if (!app.state.currentUser.bankPin) {
+                    app.ui.openModal('setPin');
+                } else {
+                    app.state.currentUser.role = 'parent';
+                    await app.data.updateUser(app.state.currentUser);
+                }
             } else {
                 // Kid needs to link to a parent
                 app.ui.openModal('linkParent');
             }
         },
 
+        async handleSetPin(e) {
+            e.preventDefault();
+            const pin = document.getElementById('set-pin-input').value.trim();
+            if (pin.length !== 4 || isNaN(pin)) {
+                alert("PIN must be 4 digits");
+                return;
+            }
+
+            app.state.currentUser.role = 'parent';
+            app.state.currentUser.bankPin = pin;
+            await app.data.updateUser(app.state.currentUser);
+            app.ui.closeModals();
+        },
+
         async handleLinkParent(e) {
             e.preventDefault();
             const parentEmail = document.getElementById('parent-link-email').value.trim();
-            // No password check for linking now (simpler), or we can just check if parent exists
-            // In real app, parent might share a code, but relying on email is okay for family app
+            const parentPin = document.getElementById('parent-link-pin').value.trim();
 
             const parentUser = app.state.users.find(u => u.email === parentEmail && u.role === 'parent');
 
             if (parentUser) {
+                if (parentUser.bankPin !== parentPin) {
+                    alert("Incorrect Parent PIN!");
+                    return;
+                }
+
                 app.state.currentUser.role = 'kid';
-                app.state.currentUser.linkedParent = parentUser.email;
+                // Initialize array if needed
+                if (!app.state.currentUser.linkedParents) {
+                    app.state.currentUser.linkedParents = [];
+                }
+                // Add if not already linked
+                if (!app.state.currentUser.linkedParents.includes(parentEmail)) {
+                    app.state.currentUser.linkedParents.push(parentEmail);
+                }
+
                 await app.data.updateUser(app.state.currentUser);
 
                 app.ui.closeModals();
-                alert(`Successfully linked to ${parentUser.username || parentUser.email}'s Bank!`);
+                alert(`Successfully linked to ${parentUser.username || parentUser.email}!`);
             } else {
-                alert('Parent account not found! Make sure they signed up with that email and selected "Bank Manager".');
+                alert('Parent account not found! Ensure email is correct.');
+            }
+        },
+
+        showAllowanceModal(kidEmail, currentAllowance) {
+            const kid = app.data.findUser(kidEmail);
+            if (!kid) return;
+
+            document.getElementById('allowance-kid-email').value = kidEmail;
+            document.getElementById('allowance-kid-name').innerText = `Set Allowance for ${kid.username}`;
+            document.getElementById('allowance-amount').value = currentAllowance || 0;
+            app.ui.openModal('allowance');
+        },
+
+        async handleSetAllowance(e) {
+            e.preventDefault();
+            const kidEmail = document.getElementById('allowance-kid-email').value;
+            const amount = parseInt(document.getElementById('allowance-amount').value);
+
+            const kid = app.data.findUser(kidEmail);
+            if (kid) {
+                kid.allowance = amount;
+                await app.data.updateUser(kid);
+                app.ui.closeModals();
             }
         },
 
@@ -334,6 +401,7 @@ const app = {
                 // Only re-render if needed or clean slate, but for now simple innerHTML replacement or check
                 // Simplified: Re-render template to ensure fresh state
                 this.renderTemplate('parentDashboard');
+                document.getElementById('parent-display-pin').innerText = user.bankPin || "Not Set";
                 this.renderParentList();
             } else {
                 this.renderTemplate('kidDashboard');
@@ -351,16 +419,27 @@ const app = {
             listContainer.innerHTML = '';
 
             if (kids.length === 0) {
-                listContainer.innerHTML = '<p style="color: #999; text-align: center;">No kids linked yet.<br>Tell them to select "Use Parents Bank"!</p>';
+                listContainer.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #888;">
+                        <p>No kids linked yet.</p>
+                        <p style="font-size: 0.9rem;">Ask your kid to select "I am a Customer" and enter your Email & PIN.</p>
+                    </div>`;
                 return;
             }
 
             kids.forEach(kid => {
                 const item = document.createElement('div');
                 item.className = 'kid-item';
+                item.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-radius: 12px; margin-bottom: 10px; border: 1px solid #eee;";
                 item.innerHTML = `
-                    <span class="kid-name">👤 ${kid.username}</span>
-                    <span class="kid-balance">$${kid.balance}</span>
+                    <div>
+                        <div class="kid-name" style="font-weight: bold; color: #333;">👤 ${kid.username}</div>
+                        <div style="font-size: 0.8rem; color: #666;">Allowance: $${kid.allowance || 0}/week</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="kid-balance" style="font-size: 1.2rem; font-weight: bold; color: #28a745;">$${kid.balance}</div>
+                        <button class="btn small" style="margin-top: 5px; background: #f0f0f0; color: #555;" onclick="app.handlers.showAllowanceModal('${kid.email}', ${kid.allowance || 0})">Edit Allowance</button>
+                    </div>
                 `;
                 listContainer.appendChild(item);
             });
@@ -380,6 +459,8 @@ const app = {
             app.dom.modals.overlay.classList.add('hidden');
             document.getElementById('link-parent-form')?.reset();
             document.getElementById('transaction-form')?.reset();
+            document.getElementById('set-pin-form')?.reset();
+            document.getElementById('allowance-form')?.reset();
         }
     }
 };
