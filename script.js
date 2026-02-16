@@ -23,6 +23,7 @@ const app = {
     state: {
         users: [],
         currentUser: null,
+        sessionRoleSelected: false
     },
 
     init() {
@@ -41,17 +42,20 @@ const app = {
 
                 if (userDoc.exists) {
                     app.state.currentUser = { ...userDoc.data(), email: user.email };
+                    app.state.sessionRoleSelected = false; // Always ask for role on fresh login
                     app.ui.showScreen('dashboard');
                     app.ui.renderDashboard(app.state.currentUser);
                 } else {
                     // Start fresh flow if doc missing (shouldn't happen usually)
                     app.state.currentUser = { email: user.email, role: null, balance: 0 };
+                    app.state.sessionRoleSelected = false;
                     app.ui.renderTemplate('roleSelection');
                     app.ui.showScreen('dashboard');
                 }
             } else {
                 console.log("User logged out");
                 app.state.currentUser = null;
+                app.state.sessionRoleSelected = false;
                 app.ui.showScreen('welcome');
             }
         });
@@ -213,17 +217,39 @@ const app = {
         },
 
         async selectRole(role) {
+            // If user is already this role and authorized, just proceed
             if (role === 'parent') {
-                // Check if PIN exists
-                if (!app.state.currentUser.bankPin) {
-                    app.ui.openModal('setPin');
+                if (app.state.currentUser.role === 'parent') {
+                    // If PIN is needed to protect re-entry, check it here?
+                    // For now, if they have role 'parent' saved, assumes they verified before.
+                    // But if they are just logging in, maybe we simply trust the session?
+                    // OR re-verify PIN? Let's assume standard behavior: if you are a parent, you are in.
+                    if (!app.state.currentUser.bankPin) {
+                        app.ui.openModal('setPin');
+                    } else {
+                        app.state.sessionRoleSelected = true;
+                        app.ui.renderDashboard(app.state.currentUser);
+                    }
                 } else {
-                    app.state.currentUser.role = 'parent';
-                    await app.data.updateUser(app.state.currentUser);
+                    // User is NEW or Switching to Parent
+                    if (!app.state.currentUser.bankPin) {
+                        app.ui.openModal('setPin');
+                    } else {
+                        // Switching back to parent (rare case if Pin exists but role was kid?)
+                        app.state.currentUser.role = 'parent';
+                        await app.data.updateUser(app.state.currentUser);
+                        app.state.sessionRoleSelected = true;
+                    }
                 }
             } else {
-                // Kid needs to link to a parent
-                app.ui.openModal('linkParent');
+                // Role is 'kid'
+                if (app.state.currentUser.role === 'kid') {
+                    app.state.sessionRoleSelected = true;
+                    app.ui.renderDashboard(app.state.currentUser);
+                } else {
+                    // User is NEW or Switching to Kid
+                    app.ui.openModal('linkParent');
+                }
             }
         },
 
@@ -238,6 +264,7 @@ const app = {
             app.state.currentUser.role = 'parent';
             app.state.currentUser.bankPin = pin;
             await app.data.updateUser(app.state.currentUser);
+            app.state.sessionRoleSelected = true;
             app.ui.closeModals();
         },
 
@@ -265,6 +292,7 @@ const app = {
                 }
 
                 await app.data.updateUser(app.state.currentUser);
+                app.state.sessionRoleSelected = true;
 
                 app.ui.closeModals();
                 alert(`Successfully linked to ${parentUser.username || parentUser.email}!`);
@@ -386,7 +414,8 @@ const app = {
 
             console.log("Rendering Dashboard for Role:", user.role);
 
-            if (!user.role || user.role === 'null') {
+            // If no role set OR session role not selected yet, show selection screen
+            if (!user.role || user.role === 'null' || !app.state.sessionRoleSelected) {
                 this.renderTemplate('roleSelection');
                 return;
             }
