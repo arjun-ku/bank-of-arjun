@@ -104,6 +104,7 @@ const app = {
         });
 
         document.getElementById('btn-google-signup').onclick = () => this.handlers.handleGoogleSignup();
+        document.getElementById('btn-google-login').onclick = () => this.handlers.handleGoogleSignup(); // Reuses same handler
         document.getElementById('btn-logout').onclick = () => this.handlers.handleLogout();
 
         // Modal Forms
