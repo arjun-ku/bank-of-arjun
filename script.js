@@ -104,35 +104,12 @@ const app = {
         this.dom.forms.login.onsubmit = (e) => e.preventDefault();
 
         // Bind button click
-        async handleLogin(e) {
-            if (e) e.preventDefault();
+        document.getElementById('btn-login-submit').onclick = (e) => this.handlers.handleLogin(e);
 
-            const btn = document.getElementById('btn-login-submit');
-            const originalText = btn.innerText;
-            btn.innerText = "Logging in...";
-            btn.disabled = true;
-
-            const email = document.getElementById('login-email').value.trim();
-            const password = document.getElementById('login-password').value.trim();
-
-            if (!email || !password) {
-                alert("Please enter both email and password.");
-                btn.innerText = originalText;
-                btn.disabled = false;
-                return;
-            }
-
-            try {
-                await auth.signInWithEmailAndPassword(email, password);
-                // Listener handles redirect. 
-                // We don't reset button here because page transition should happen.
-            } catch (err) {
-                console.error("Login Error:", err);
-                alert("Login Failed: " + err.message);
-                btn.innerText = originalText;
-                btn.disabled = false;
-            }
-        },
+        // Allow Enter key in password field
+        document.getElementById('login-password').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.handlers.handleLogin(e);
+        });
 
         document.getElementById('btn-google-signup').onclick = () => this.handlers.handleGoogleSignup();
         document.getElementById('btn-logout').onclick = () => this.handlers.handleLogout();
@@ -192,6 +169,35 @@ const app = {
     },
 
     handlers: {
+        async handleLogin(e) {
+            if (e) e.preventDefault();
+
+            const btn = document.getElementById('btn-login-submit');
+            const originalText = btn.innerText;
+            btn.innerText = "Logging in...";
+            btn.disabled = true;
+
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+
+            if (!email || !password) {
+                alert("Please enter both email and password.");
+                btn.innerText = originalText;
+                btn.disabled = false;
+                return;
+            }
+
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                // Listener handles redirect
+            } catch (err) {
+                console.error("Login Error:", err);
+                alert("Login Failed: " + err.message);
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        },
+
         async handleSignup(e) {
             e.preventDefault();
             const email = document.getElementById('signup-email').value.trim();
