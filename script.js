@@ -101,7 +101,18 @@ const app = {
 
         // Auth Forms
         this.dom.forms.signup.onsubmit = (e) => this.handlers.handleSignup(e);
-        this.dom.forms.login.onsubmit = (e) => this.handlers.handleLogin(e);
+
+        // Prevent default submit on login form (handled by button click)
+        this.dom.forms.login.onsubmit = (e) => e.preventDefault();
+
+        // Bind button click
+        document.getElementById('btn-login-submit').onclick = (e) => this.handlers.handleLogin(e);
+
+        // Allow Enter key in password field
+        document.getElementById('login-password').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.handlers.handleLogin(e);
+        });
+
         document.getElementById('btn-google-signup').onclick = () => this.handlers.handleGoogleSignup();
         document.getElementById('btn-logout').onclick = () => this.handlers.handleLogout();
 
