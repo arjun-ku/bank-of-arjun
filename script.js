@@ -384,7 +384,9 @@ const app = {
 
             app.ui.updateUserInfo(user);
 
-            if (!user.role) {
+            console.log("Rendering Dashboard for Role:", user.role);
+
+            if (!user.role || user.role === 'null') {
                 this.renderTemplate('roleSelection');
                 return;
             }
