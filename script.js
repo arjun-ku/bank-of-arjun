@@ -2,15 +2,7 @@
  * Bank of Piggo - Main Logic with Firebase
  */
 
-const firebaseConfig = {
-    apiKey: "AIzaSyDEhAH1DxWugB5fkUZUhi0IYqqFk0LceLI",
-    authDomain: "bank-of-arjun.firebaseapp.com",
-    projectId: "bank-of-arjun",
-    storageBucket: "bank-of-arjun.firebasestorage.app",
-    messagingSenderId: "998590863555",
-    appId: "1:998590863555:web:46a6a0f4069e1780c4ea76",
-    measurementId: "G-YKG1YQH622"
-};
+// Firebase Config is now loaded from config.js
 
 // Initialize Firebase
 if (!firebase.apps.length) {
@@ -281,11 +273,15 @@ const app = {
                 }
             } else {
                 // Role is 'kid'
-                if (app.state.currentUser.role === 'kid') {
+                // Check if they are actually linked to a parent
+                const hasLinkedParent = app.state.currentUser.linkedParents && app.state.currentUser.linkedParents.length > 0;
+                const hasLegacyLink = app.state.currentUser.linkedParent; // user.linkedParent string
+
+                if (app.state.currentUser.role === 'kid' && (hasLinkedParent || hasLegacyLink)) {
                     app.state.sessionRoleSelected = true;
                     app.ui.renderDashboard(app.state.currentUser);
                 } else {
-                    // User is NEW or Switching to Kid
+                    // User is NEW, Switching, or Needs to Link
                     app.ui.openModal('linkParent');
                 }
             }
